@@ -14,6 +14,9 @@ from users.serializers import CustomTokenObtainPairSerializer, UserSerializer, U
 # Create your views here.
 
 class UserView(APIView):
+    def get(self, request):
+        return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
+
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
