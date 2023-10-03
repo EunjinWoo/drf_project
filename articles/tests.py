@@ -4,6 +4,9 @@ from django.urls import reverse # name 값을 이용해서 해당 path를 가져
 from rest_framework.test import APITestCase
 from rest_framework import status
 from users.models import User
+from articles.models import Article
+from faker import Faker
+from articles.serializers import ArticleSerializer, ArticleListSerializer, ArticleCreateSerializer, CommentSerializer, CommentCreateSerializer
 
 # 이미지 업로드
 from django.test.client import MULTIPART_CONTENT, encode_multipart, BOUNDARY
@@ -64,3 +67,23 @@ class ArticleCreateTest(APITestCase):
             HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
         )
         self.assertEqual(response.status_code, 200)
+
+
+class ArticleReadTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+        cls.articles=[]
+        for i in range(10):
+            name = cls.faker.name()
+            cls.user = User.objects.create_user(f"{name}@test.com", cls.faker.word())
+            cls.articles.append(Article.objects.create(title=cls.faker.sentence(), content=cls.faker.text(), user=cls.user))
+
+    def test_get_article(self):
+        for article in self.articles:
+            url = article.get_absolute_url() # 해당 article의 url을 받아오는 것이 가능해짐.
+            response = self.client.get(url)
+            serializer = ArticleSerializer(article).data
+            for key, value in serializer.items():
+                self.assertEqual(response.data[key], value)
+                print(key, value)
