@@ -26,3 +26,12 @@ class ArticleCreateTest(APITestCase):
         url = reverse("article_view")
         response = self.client.post(url, self.article_data)
         self.assertEqual(response.status_code, 401)
+
+    def test_create_article(self):
+        response = self.client.post(
+            path=reverse("article_view"),
+            data=self.article_data,
+            HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
+        )
+        # self.assertEqual(response.data["meaasge"], "글 작성 완료!") # 메시지 response가 있을 때는 이렇게 확인도 가능.
+        self.assertEqual(response.status_code, 200)
