@@ -30,8 +30,11 @@ class ArticleView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if not request.user.is_authenticated:
+            return Response({"message":"로그인 해주세요."}, 401)
+
         serializer = ArticleCreateSerializer(data=request.data)
-        print(request.user)
+        # print(request.user)
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
