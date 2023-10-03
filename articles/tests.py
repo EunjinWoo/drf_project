@@ -5,6 +5,18 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from users.models import User
 
+# 이미지 업로드
+from django.test.client import MULTIPART_CONTENT, encode_multipart, BOUNDARY
+from PIL import Image
+import tempfile
+
+def get_temporary_image(temp_file):
+    size = (200, 200)
+    color = (255, 0, 0, 0)
+    image = Image.new("RGBA", size, color)
+    image.save(temp_file, 'png')
+    return temp_file
+
 # Create your tests here.
 class ArticleCreateTest(APITestCase):
     @classmethod
@@ -34,4 +46,21 @@ class ArticleCreateTest(APITestCase):
             HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
         )
         # self.assertEqual(response.data["meaasge"], "글 작성 완료!") # 메시지 response가 있을 때는 이렇게 확인도 가능.
+        self.assertEqual(response.status_code, 200)
+
+    def test_create_article_with_image(self):
+        # 임시 이미지 파일 생성
+        temp_file = tempfile.NamedTemporaryFile()
+        temp_file.name = "image.png"
+        image_file = get_temporary_image(temp_file)
+        image_file.seek(0) # image의 첫번째 frame을 받아옴.
+        self.article_data["image"] = image_file
+
+        #전송
+        response = self.client.post(
+            path=reverse("article_view"),
+            data=encode_multipart(data = self.article_data, boundary=BOUNDARY),
+            content_type=MULTIPART_CONTENT,
+            HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
+        )
         self.assertEqual(response.status_code, 200)
